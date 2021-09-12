@@ -1,0 +1,125 @@
+---
+title: "Homework 1"
+author: "Almog S. and Tomer M."
+description: "The goal of this homework is to introduce you to R, RStudio and R Markdown. In the assignment you will need to submit the .rmd file created by this markdown project, where every chunk is filled properly based on the instructions."
+output: html_document
+---
+
+# Homework 1
+
+### Instructions
+
+1.  All assignments are individual!
+2.  This assignment should be uploaded as one "html" file (after knit) before 23/3/2021, 23:59.
+3.  There are 6 questions in this assignment, if you want to pass it you must code all 6 of them.
+4.  Questions about the assignment should be asked using the Assignments forums.
+5.  Because this is and advanced course, questions about compilation and installment of R and libraries will not be answered! (Look it up in Google)
+6.  This you should copy the code from this assignment and create an .rmd file to work with.
+7.  All of the instructions of this assignment should be included in the final .html file.
+
+The goal of this homework is to introduce you to R, RStudio and R Markdown. In the assignment you will need to submit the .rmd file created by this markdown project, where every chunk is filled properly based on the instructions.
+
+First, lets set the knit options with parameter 'echo=True'. This will allow the knit to create a html output file, where the code written by you will be presented before it's output. In addition, we will load the library tidyverse. (If not installed, follow the instructions here: <https://www.tidyverse.org/help/> )
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Including Plots
+
+First, lets plot without using tidyverse:
+
+```{r}
+plot(population)
+```
+
+This shows relations between each pair of columns in the 'population' table', however, without filtering and focusing on specific data, we are not able to detect any patterns.
+
+### 'Population' table
+
+Let's start by checking what are the columns of the table:
+
+```{r}
+glimpse(population)
+
+```
+
+Q1. Change the function so we can get a subset of the data where the only country is Israel
+
+```{r}
+population %>%
+  filter(country=="Israel")
+```
+
+Q2. In the following chunk, save the subset above as 'pop_1', so you can plot more information about the data
+
+```{r}
+pop_1 <- population %>%
+  filter(country=="Israel")
+```
+
+Q3. In the following chunk, create a **line plot** where you can see the change in population in Israel between the years 1995 and 2013 (use pop_1)
+
+```{r}
+ggplot(pop_1, mapping = aes(x = year, y = population)) +
+  geom_point() +
+  geom_smooth() +
+  labs(title = "Change in population in Israel",subtitle ="Between the years 1995 and 2013", x = "Year", y = "Population")
+  
+```
+
+Q4. In the following chunk, please filter the years 2004-2013 to see the change in population in 10 years:
+
+```{r}
+pop1_04_13 <- pop_1 %>%
+  filter(between(year,2004,2013))
+ggplot(pop1_04_13, mapping = aes(x = year, y = population)) +
+  geom_point() +
+  geom_smooth() +
+  labs(title = "Change in population in Israel",subtitle ="Between the years 2004 and 2013", x = "Year", y = "Population")
+```
+
+## Seatbelts dataset
+
+Let's take a look at another dataset, called "Seatbelts", which is based on the "Road Casualties in Great Britain 1969-84" inbuilt R data set. The 'Seatbelts' data set in R is a multiple time-series data set that was commissioned by the Department of Transport in 1984 to measure differences in deaths before and after front seatbelt legislation was introduced on 31st January 1983.
+
+For simpler view, run the following chunk:
+
+```{r}
+data(Seatbelts)
+Seatbelts <- data.frame(Year=floor(time(Seatbelts)),
+Month=factor(cycle(Seatbelts),
+labels=month.abb), Seatbelts)
+```
+
+```{r}
+head(Seatbelts)
+```
+
+```{r}
+str(Seatbelts)
+```
+
+Q5. Make the plot the following aggregation using ggplot (Drivers killed per year), add labels and title to the plot.
+
+```{r}
+plot(aggregate(Seatbelts$DriversKilled, by=list(Year=Seatbelts$Year), FUN=sum))
+ggplot(data = Seatbelts, mapping = aes(x = Year, y =DriversKilled )) +
+  stat_summary(aes(y = DriversKilled),fun = "sum",, geom = "point") +
+  labs(title = "Plot of drivers killed in Great Britain from car accidents",subtitle = "Between years 1969-1984",caption = "Data took from the Road Casualties in Great Britain 1969-84" ,x = "Year", y = "Drivers killed")
+
+```
+
+Q6. Make the plot proportionate to the number of drivers every year. Can you see the difference?
+
+I can see difference as in the years 1980 to 1984 there are little number of casualties compared to the previous years but the proportion of the drivers that were killed are higher then previous years. Also from 1969-1974 the number of casualties are high but the proportion is not that high compared to the next years. For result we can say that there are no relation between the proportion to the number of casualties.
+
+```{r}
+grouped_by_year <- Seatbelts %>% group_by(Year)
+grouped_by_year <-grouped_by_year %>% summarise(DriversKilled = sum(DriversKilled),drivers = sum(drivers))
+ggplot(data = grouped_by_year, mapping = aes(x = Year, y =DriversKilled/drivers )) +
+  geom_point() +
+  labs(x = "Year", y = "Proportion of drivers killed", title = "Plot of Proportion of the drivers killed from all drivers by year",subtitle = "Between years 1969-1984",caption = "Data took from the Road Casualties in Great Britain 1969-84")
+
+```
